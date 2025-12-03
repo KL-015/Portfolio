@@ -8,20 +8,62 @@
       margin: 0;
       padding: 0;
       height: 100%;
-      background: #f0f0f0;
+      overflow: hidden; /* remove page scroll */
+      background: #000; /* optional dark background */
     }
-    iframe {
+    #pdf-container {
       width: 100%;
       height: 100%;
-      border: none;
+      overflow: hidden; /* remove PDF scroll */
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
     }
   </style>
 </head>
 <body>
 
-<iframe 
-  src="assets/Banate%20%26%20Bayer.pdf">
-</iframe>
+<div id="pdf-container"></div>
+
+<!-- PDF.js library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.88/pdf.min.js"></script>
+
+<script>
+const url = 'assets/Banate%20%26%20Bayer.pdf'; // PDF path
+
+const pdfjsLib = window['pdfjs-dist/build/pdf'];
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.88/pdf.worker.min.js';
+
+let pdfDoc = null;
+let pageNum = 1;
+const scale = 1.2; // adjust zoom
+
+const container = document.getElementById('pdf-container');
+
+function renderPage(num) {
+  pdfDoc.getPage(num).then(page => {
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+    container.innerHTML = ''; // clear previous page
+    container.appendChild(canvas);
+
+    const renderCtx = {
+      canvasContext: ctx,
+      viewport: viewport
+    };
+    page.render(renderCtx);
+  });
+}
+
+pdfjsLib.getDocument(url).promise.then(pdf => {
+  pdfDoc = pdf;
+  renderPage(pageNum);
+});
+</script>
 
 </body>
 </html>
