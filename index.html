@@ -2,24 +2,74 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>PDF Viewer</title>
+  <title>AuxMach Portfolio</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
+      width: 100%;
       overflow: hidden;
+      background: #000;
     }
-    iframe {
-      width: 100vw;
-      height: 100vh;
-      border: none;
+    #pdf-container {
+      width: 100%;
+      height: 100%;
+      text-align: center;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: #fff; /* optional white background */
     }
   </style>
 </head>
 <body>
 
-<iframe src="assets/Banate%20%26%20Bayer.pdf"></iframe>
+<div id="pdf-container"></div>
+
+<!-- PDF.js library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.88/pdf.min.js"></script>
+
+<script>
+  // GitHub PDF blob link (must use raw link)
+  const url = 'https://github.com/KL-015/Portfolio/raw/52aca1b622c43241a78e795907b7c95badcad750/assets/Banate%20%26%20Bayer.pdf';
+
+  const pdfjsLib = window['pdfjs-dist/build/pdf'];
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.88/pdf.worker.min.js';
+
+  const container = document.getElementById('pdf-container');
+  let pdfDoc = null;
+  const scale = 1.2; // zoom level
+
+  // Render a single page
+  function renderPage(pageNum) {
+    pdfDoc.getPage(pageNum).then(page => {
+      const viewport = page.getViewport({ scale });
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+
+      // Clear container and append new canvas
+      container.innerHTML = '';
+      container.appendChild(canvas);
+
+      page.render({ canvasContext: ctx, viewport }).promise.then(() => {
+        console.log(`Page ${pageNum} rendered`);
+      });
+    });
+  }
+
+  // Load PDF
+  pdfjsLib.getDocument(url).promise.then(pdf => {
+    pdfDoc = pdf;
+    renderPage(1); // render first page
+  }).catch(err => {
+    console.error('Error loading PDF:', err);
+    container.innerHTML = '<p style="color:white;">Failed to load PDF.</p>';
+  });
+</script>
 
 </body>
 </html>
